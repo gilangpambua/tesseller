@@ -19,7 +19,11 @@ const shuffleArray = <T,>(array: T[]): T[] => {
     .map(({ item }) => item);
 };
 
-const DetailArtikelPage = async ({ params }: { params: { id: string } }) => {
+export default async function DetailArtikelPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_SELLER}/articles/${params.id}`
   );
@@ -223,6 +227,4 @@ const DetailArtikelPage = async ({ params }: { params: { id: string } }) => {
       </div>
     </div>
   );
-};
-
-export default DetailArtikelPage;
+}
