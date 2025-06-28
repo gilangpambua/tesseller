@@ -1,0 +1,518 @@
+"use client";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+
+const CategoryPage: React.FC = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCategories, setTotalCategories] = useState(0);
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [categoryName, setCategoryName] = useState("");
+
+  const router = useRouter();
+
+  useEffect(() => {
+    fetchCategories();
+  }, [currentPage, searchTerm]);
+
+  const fetchCategories = async () => {
+    try {
+      const params: any = { page: currentPage, limit: 10 };
+      if (searchTerm) params.name = searchTerm;
+
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_SELLER}/categories`,
+        {
+          params,
+        }
+      );
+
+      setCategories(res.data.data);
+      setCurrentPage(res.data.currentPage);
+      setTotalPages(res.data.totalPages);
+      setTotalCategories(res.data.totalData);
+    } catch (error: any) {
+      console.error("Error fetching categories:", error);
+      if (error.response?.status === 401) {
+        router.push("/");
+      }
+    }
+  };
+
+  const openAddModal = () => {
+    setCategoryName("");
+    setIsAddModalOpen(true);
+  };
+
+  const openEditModal = (category: any) => {
+    setSelectedCategory(category);
+    setCategoryName(category.name);
+    setIsEditModalOpen(true);
+  };
+
+  const openDeleteModal = (category: any) => {
+    setSelectedCategory(category);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeModals = () => {
+    setIsAddModalOpen(false);
+    setIsEditModalOpen(false);
+    setIsDeleteModalOpen(false);
+    setSelectedCategory(null);
+    setCategoryName("");
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryName) {
+      alert("Please fill in fields.");
+      return;
+    }
+
+    try {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) {
+        alert("You must be logged in to delete an article.");
+        return;
+      }
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_SELLER}/categories`,
+        { name: categoryName },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          // withCredentials: true,
+        }
+      );
+      closeModals();
+      fetchCategories();
+    } catch (error: any) {
+      console.error("Error adding category:", error);
+      if (error.response?.status === 401) {
+        router.push("/");
+      } else {
+        alert("Failed to add category.");
+      }
+    }
+  };
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryName || !selectedCategory) {
+      alert("Please fill in fields.");
+      return;
+    }
+
+    try {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) {
+        alert("You must be logged in to delete an article.");
+        return;
+      }
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_SELLER}/categories/${selectedCategory.id}`,
+        { name: categoryName },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          // withCredentials: true,
+        }
+      );
+      closeModals();
+      fetchCategories();
+    } catch (error: any) {
+      console.error("Error editing category:", error);
+      if (error.response?.status === 401) {
+        router.push("/");
+      } else {
+        alert("Failed to edit category.");
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedCategory) return;
+
+    try {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) {
+        alert("You must be logged in to delete an article.");
+        return;
+      }
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_SELLER}/categories/${selectedCategory.id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          // withCredentials: true,
+        }
+      );
+      closeModals();
+      fetchCategories();
+    } catch (error: any) {
+      console.error("Error deleting category:", error);
+      if (error.response?.status === 401) {
+        router.push("/");
+      } else {
+        alert("Failed to delete category.");
+      }
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleLogout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_SELLER}/logout`,
+        {},
+        { withCredentials: true }
+      );
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      router.push("/");
+    }
+  };
+
+  return (
+    <div>
+      <div className="grid h-screen sm:h-screen md:flex">
+        <div
+          className={`w-screen bg-[#2563EB] text-white flex flex-col p-4 md:flex sm:flex md:w-[250px] md:px-[30px] ${
+            isSidebarOpen ? "block" : "hidden"
+          } md:block`}
+          id="sideNav"
+        >
+          <div className="">
+            <svg
+              width="134"
+              height="24"
+              viewBox="0 0 134 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g clipPath="url(#clip0_2035_5422)">
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M0 8.37209V17.3023H2.80335C3.09785 17.3023 3.38948 17.3601 3.6616 17.4723C3.93365 17.5845 4.18093 17.7489 4.38913 17.9562C4.59739 18.1635 4.76261 18.4097 4.87534 18.6805C4.98799 18.9514 5.04603 19.2417 5.04603 19.5349V22.3256H11.7741L20.1841 13.9535V5.02326H17.3808C17.0862 5.02326 16.7946 4.96552 16.5225 4.85332C16.2504 4.74112 16.0032 4.57667 15.795 4.36936C15.5867 4.16205 15.4215 3.91592 15.3087 3.64506C15.1961 3.3742 15.1381 3.08389 15.1381 2.7907V0H8.41004L0 8.37209ZM9.53138 16.7442H5.60669V10.6047L10.6527 5.5814H14.5774V11.7209L9.53138 16.7442Z"
+                  fill="white"
+                />
+                <path
+                  d="M129.272 6.83484C130.689 6.83484 131.827 7.27019 132.688 8.14089C133.563 8.9978 134 10.2002 134 11.7481V18.4857H131.084V12.142C131.084 11.2436 130.855 10.5595 130.397 10.0896C129.939 9.60589 129.314 9.36405 128.523 9.36405C127.732 9.36405 127.1 9.60589 126.628 10.0896C126.17 10.5595 125.941 11.2436 125.941 12.142V18.4857H123.025V12.142C123.025 11.2436 122.796 10.5595 122.338 10.0896C121.88 9.60589 121.255 9.36405 120.464 9.36405C119.659 9.36405 119.02 9.60589 118.548 10.0896C118.09 10.5595 117.861 11.2436 117.861 12.142V18.4857H114.945V7.00066H117.861V8.38965C118.236 7.90596 118.714 7.52587 119.298 7.24948C119.895 6.97303 120.547 6.83484 121.255 6.83484C122.158 6.83484 122.963 7.02835 123.671 7.4153C124.379 7.78848 124.927 8.32747 125.316 9.03235C125.691 8.36894 126.232 7.83681 126.94 7.43601C127.662 7.03521 128.44 6.83484 129.272 6.83484Z"
+                  fill="white"
+                />
+                <path
+                  d="M112.797 7.00073V18.4858H109.861V17.0346C109.486 17.5322 108.993 17.926 108.382 18.2163C107.785 18.4927 107.133 18.6309 106.425 18.6309C105.522 18.6309 104.724 18.4443 104.03 18.0711C103.336 17.6842 102.788 17.1244 102.385 16.3919C101.996 15.6456 101.802 14.7611 101.802 13.7384V7.00073H104.717V13.3237C104.717 14.2359 104.946 14.9408 105.404 15.4383C105.863 15.922 106.487 16.1639 107.278 16.1639C108.084 16.1639 108.715 15.922 109.174 15.4383C109.632 14.9408 109.861 14.2359 109.861 13.3237V7.00073H112.797Z"
+                  fill="white"
+                />
+                <path
+                  d="M95.7018 18.6723C94.7576 18.6723 93.9104 18.5064 93.1608 18.1747C92.4112 17.8292 91.8141 17.3662 91.3701 16.7858C90.9395 16.2053 90.7034 15.5626 90.6619 14.8578H93.5982C93.6537 15.3 93.869 15.6663 94.244 15.9565C94.6326 16.2468 95.1114 16.3919 95.6805 16.3919C96.2361 16.3919 96.6667 16.2813 96.9717 16.0602C97.2913 15.839 97.4511 15.5557 97.4511 15.2102C97.4511 14.8371 97.2565 14.5606 96.868 14.381C96.4929 14.1875 95.889 13.9802 95.0559 13.759C94.1953 13.5517 93.4871 13.3375 92.9321 13.1164C92.3905 12.8952 91.9184 12.5566 91.5158 12.1006C91.1267 11.6444 90.9327 11.0294 90.9327 10.2555C90.9327 9.61974 91.1133 9.03928 91.4743 8.51407C91.8489 7.98886 92.3765 7.57427 93.0565 7.2702C93.7512 6.96612 94.5631 6.81409 95.4932 6.81409C96.868 6.81409 97.9646 7.15963 98.7838 7.85066C99.6029 8.52791 100.054 9.44694 100.137 10.6079H97.3468C97.3053 10.1518 97.1107 9.79249 96.7637 9.52988C96.4307 9.25349 95.9793 9.11524 95.4102 9.11524C94.8826 9.11524 94.4728 9.21202 94.1812 9.40553C93.9037 9.59898 93.7647 9.86851 93.7647 10.214C93.7647 10.601 93.9592 10.8982 94.3478 11.1055C94.7369 11.299 95.3407 11.4993 96.1599 11.7066C96.9924 11.914 97.6798 12.1282 98.2214 12.3493C98.763 12.5705 99.2278 12.9159 99.6169 13.3858C100.019 13.842 100.228 14.45 100.242 15.2102C100.242 15.8736 100.054 16.4679 99.6792 16.9931C99.3181 17.5183 98.7905 17.9329 98.0964 18.237C97.4163 18.5272 96.6179 18.6723 95.7018 18.6723Z"
+                  fill="white"
+                />
+                <path
+                  d="M80.8172 8.65918C81.1922 8.13398 81.7058 7.69863 82.3584 7.35314C83.0245 6.99381 83.7814 6.81409 84.628 6.81409C85.6137 6.81409 86.5023 7.05598 87.294 7.53972C88.0991 8.02341 88.7304 8.71444 89.1891 9.61282C89.6612 10.4974 89.8966 11.527 89.8966 12.7017C89.8966 13.8765 89.6612 14.9199 89.1891 15.8321C88.7304 16.7305 88.0991 17.4285 87.294 17.926C86.5023 18.4235 85.6137 18.6723 84.628 18.6723C83.7814 18.6723 83.0318 18.4995 82.3792 18.154C81.7406 17.8085 81.2197 17.3731 80.8172 16.848V23.9587H77.9017V7.00067H80.8172V8.65918ZM86.9189 12.7017C86.9189 12.0107 86.7731 11.4164 86.4816 10.9189C86.2041 10.4075 85.829 10.0205 85.3569 9.75794C84.8988 9.49533 84.3993 9.36406 83.8577 9.36406C83.3301 9.36406 82.8305 9.50225 82.3584 9.77865C81.8998 10.0412 81.5253 10.4282 81.2337 10.9396C80.9562 11.4509 80.8172 12.0522 80.8172 12.7432C80.8172 13.4342 80.9562 14.0355 81.2337 14.5468C81.5253 15.0582 81.8998 15.4521 82.3584 15.7285C82.8305 15.9911 83.3301 16.1224 83.8577 16.1224C84.3993 16.1224 84.8988 15.9842 85.3569 15.7078C85.829 15.4313 86.2041 15.0374 86.4816 14.5261C86.7731 14.0147 86.9189 13.4066 86.9189 12.7017Z"
+                  fill="white"
+                />
+                <path
+                  d="M74.3128 5.63245C73.7992 5.63245 73.3692 5.4735 73.0221 5.15563C72.6886 4.82393 72.522 4.41622 72.522 3.93249C72.522 3.44877 72.6886 3.04797 73.0221 2.73009C73.3692 2.3984 73.7992 2.23254 74.3128 2.23254C74.8269 2.23254 75.2503 2.3984 75.5833 2.73009C75.9303 3.04797 76.1042 3.44877 76.1042 3.93249C76.1042 4.41622 75.9303 4.82393 75.5833 5.15563C75.2503 5.4735 74.8269 5.63245 74.3128 5.63245ZM75.7498 7.00067V18.4857H72.8343V7.00067H75.7498Z"
+                  fill="white"
+                />
+                <path
+                  d="M65.406 18.6723C64.2953 18.6723 63.2962 18.4304 62.4076 17.9467C61.5189 17.4492 60.8181 16.7512 60.3039 15.8529C59.8044 14.9546 59.5543 13.918 59.5543 12.7432C59.5543 11.5684 59.8111 10.5319 60.3247 9.63353C60.8523 8.7352 61.5677 8.04417 62.4698 7.56043C63.3725 7.06291 64.3789 6.81409 65.4896 6.81409C66.6003 6.81409 67.6067 7.06291 68.5093 7.56043C69.4115 8.04417 70.1196 8.7352 70.6332 9.63353C71.1607 10.5319 71.4248 11.5684 71.4248 12.7432C71.4248 13.918 71.154 14.9546 70.6124 15.8529C70.0848 16.7512 69.3632 17.4492 68.4465 17.9467C67.5444 18.4304 66.5307 18.6723 65.406 18.6723ZM65.406 16.1431C65.9336 16.1431 66.4264 16.0187 66.8851 15.7699C67.3572 15.5073 67.7317 15.1204 68.0092 14.609C68.2873 14.0976 68.4258 13.4757 68.4258 12.7432C68.4258 11.6514 68.1342 10.8152 67.5511 10.2348C66.9821 9.64045 66.2807 9.3433 65.4481 9.3433C64.6149 9.3433 63.9141 9.64045 63.3444 10.2348C62.7894 10.8152 62.5119 11.6514 62.5119 12.7432C62.5119 13.835 62.7821 14.6781 63.3237 15.2724C63.8793 15.8529 64.5734 16.1431 65.406 16.1431Z"
+                  fill="white"
+                />
+                <path
+                  d="M52.8551 18.6723C51.7444 18.6723 50.7449 18.4304 49.8563 17.9467C48.9678 17.4492 48.2667 16.7512 47.753 15.8529C47.2532 14.9546 47.0033 13.918 47.0033 12.7432C47.0033 11.5684 47.2601 10.5319 47.7738 9.63353C48.3014 8.7352 49.0164 8.04417 49.9188 7.56043C50.8212 7.06291 51.8277 6.81409 52.9384 6.81409C54.0491 6.81409 55.0556 7.06291 55.9581 7.56043C56.8603 8.04417 57.5684 8.7352 58.082 9.63353C58.6096 10.5319 58.8737 11.5684 58.8737 12.7432C58.8737 13.918 58.6029 14.9546 58.0613 15.8529C57.5337 16.7512 56.8121 17.4492 55.8956 17.9467C54.9932 18.4304 53.9797 18.6723 52.8551 18.6723ZM52.8551 16.1431C53.3827 16.1431 53.8755 16.0187 54.3337 15.7699C54.8057 15.5073 55.1806 15.1204 55.4582 14.609C55.7359 14.0976 55.8748 13.4757 55.8748 12.7432C55.8748 11.6514 55.5832 10.8152 55.0001 10.2348C54.4309 9.64045 53.7298 9.3433 52.8968 9.3433C52.0638 9.3433 51.3627 9.64045 50.7934 10.2348C50.2381 10.8152 49.9604 11.6514 49.9604 12.7432C49.9604 13.835 50.2312 14.6781 50.7726 15.2724C51.328 15.8529 52.0221 16.1431 52.8551 16.1431Z"
+                  fill="white"
+                />
+                <path
+                  d="M40.304 18.6723C39.1933 18.6723 38.1937 18.4304 37.3052 17.9467C36.4166 17.4492 35.7155 16.7512 35.2018 15.8529C34.702 14.9546 34.4521 13.918 34.4521 12.7432C34.4521 11.5684 34.709 10.5319 35.2227 9.63353C35.7502 8.7352 36.4652 8.04417 37.3676 7.56043C38.27 7.06291 39.2766 6.81409 40.3873 6.81409C41.4979 6.81409 42.5045 7.06291 43.4069 7.56043C44.3093 8.04417 45.0173 8.7352 45.531 9.63353C46.0586 10.5319 46.3224 11.5684 46.3224 12.7432C46.3224 13.918 46.0517 14.9546 45.5102 15.8529C44.9826 16.7512 44.2607 17.4492 43.3444 17.9467C42.442 18.4304 41.4285 18.6723 40.304 18.6723ZM40.304 16.1431C40.8316 16.1431 41.3244 16.0187 41.7826 15.7699C42.2546 15.5073 42.6295 15.1204 42.9071 14.609C43.1847 14.0976 43.3236 13.4757 43.3236 12.7432C43.3236 11.6514 43.0321 10.8152 42.4489 10.2348C41.8797 9.64045 41.1786 9.3433 40.3456 9.3433C39.5126 9.3433 38.8115 9.64045 38.2423 10.2348C37.6869 10.8152 37.4093 11.6514 37.4093 12.7432C37.4093 13.835 37.68 14.6781 38.2215 15.2724C38.7768 15.8529 39.471 16.1431 40.304 16.1431Z"
+                  fill="white"
+                />
+                <path
+                  d="M29.2669 16.1846H34.0567V18.4857H26.3514V4.01538H29.2669V16.1846Z"
+                  fill="white"
+                />
+                <path
+                  d="M47.7725 20.0284C48.511 22.2147 50.5867 23.7896 53.0319 23.7896H53.3362C56.4 23.7896 58.8838 21.3171 58.8838 18.2671V17.9551H55.8761V18.2671C55.8761 19.6636 54.739 20.7956 53.3362 20.7956H53.0319C52.317 20.7956 51.671 20.5016 51.2095 20.0284H47.7725Z"
+                  fill="white"
+                />
+              </g>
+              <defs>
+                <clipPath id="clip0_2035_5422">
+                  <rect width="134" height="24" fill="white" />
+                </clipPath>
+              </defs>
+            </svg>
+          </div>
+          <div className="pt-[20px]">
+            <nav className="grid gap-[20px] text-[14px]">
+              <a
+                className="block text-white rounded transition duration-200 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-500 hover:text-white"
+                href="/dashboard"
+              >
+                Articles
+              </a>
+              <a
+                className="block text-white rounded transition duration-200 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-500 hover:text-white"
+                href="/category"
+              >
+                Category
+              </a>
+              <a
+                className="block text-white rounded transition duration-200 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-500 hover:text-white"
+                onClick={handleLogout}
+              >
+                Logout
+              </a>
+            </nav>
+          </div>
+        </div>
+
+        <div className="w-screen flex-1 flex flex-col bg-gray-100">
+          <div className="bg-white shadow-md flex justify-between p-4 items-center">
+            <div className="flex items-center">
+              <div className="md:hidden flex items-center">
+                <button
+                  id="menuBtn"
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                >
+                  <span className="text-gray-500 text-lg">&#9776;</span>
+                </button>
+              </div>
+              <div className="flex items-center">
+                <span className="font-bold text-xl">Categories</span>
+              </div>
+            </div>
+            <div className="space-x-5 flex items-center">
+              <a href="/profile">
+                {" "}
+                <button>
+                  <span className="text-gray-500 text-lg">👤</span>
+                </button>
+              </a>
+            </div>
+          </div>
+          <div className="pt-[10px] px-4 pb-2 overflow:hidden">
+            <div className="bg-white text-sm text-gray-700 p-4 rounded-lg">
+              Total Categories: {totalCategories}
+            </div>
+          </div>
+
+          <div className="flex px-4">
+            <div className="relative max-w-md w-full flex justify-between">
+              <div className="bg-white rounded-lg">
+                <input
+                  type="text"
+                  placeholder="Search categories"
+                  className="w-full outline-none text-gray-700 p-2 rounded-lg"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <button
+                onClick={openAddModal}
+                className="bg-[#2563EB] lg:w-[150px] text-white px-4 py-2 rounded"
+              >
+                +Category
+              </button>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto p-4">
+            <table className="w-full table-auto text-sm">
+              <thead>
+                <tr className="text-sm leading-normal">
+                  <th className="py-2 px-4 bg-gray-100 font-bold text-gray-600 border-b">
+                    Name
+                  </th>
+                  <th className="py-2 px-4 bg-gray-100 font-bold text-gray-600 border-b">
+                    Created At
+                  </th>
+                  <th className="py-2 px-4 bg-gray-100 font-bold text-gray-600 border-b">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white rounded-lg text-center">
+                {categories.map((category) => (
+                  <tr key={category.id} className="hover:bg-gray-200">
+                    <td className="py-2 px-4 border-b border-gray-100 border-y-3">
+                      {category.name}
+                    </td>
+                    <td className="py-2 px-4 border-b border-gray-100 border-y-3">
+                      {new Date(category.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-2 px-4 border-b border-gray-100 border-y-3">
+                      <button
+                        className="text-yellow-600 hover:text-yellow-800 mr-2"
+                        onClick={() => openEditModal(category)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-800"
+                        onClick={() => openDeleteModal(category)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {isAddModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+              <div className="bg-white p-6 rounded-lg w-full max-w-sm">
+                <h2 className="text-lg font-bold mb-4">Add Category</h2>
+                <form onSubmit={handleAdd}>
+                  <input
+                    type="text"
+                    className="w-full border p-2 rounded mb-4"
+                    placeholder="Category Name"
+                    value={categoryName}
+                    onChange={(e) => setCategoryName(e.target.value)}
+                  />
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      type="button"
+                      onClick={closeModals}
+                      className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Modal */}
+          {isEditModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+              <div className="bg-white p-6 rounded-lg w-full max-w-sm">
+                <h2 className="text-lg font-bold mb-4">Edit Category</h2>
+                <form onSubmit={handleEdit}>
+                  <input
+                    type="text"
+                    className="w-full border p-2 rounded mb-4"
+                    placeholder="Category Name"
+                    value={categoryName}
+                    onChange={(e) => setCategoryName(e.target.value)}
+                  />
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      type="button"
+                      onClick={closeModals}
+                      className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded bg-yellow-600 text-white hover:bg-yellow-700"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Modal */}
+          {isDeleteModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+              <div className="bg-white p-6 rounded-lg w-full max-w-sm">
+                <h2 className="text-lg font-bold mb-4">Delete Category</h2>
+                <p>
+                  Are you sure you want to delete{" "}
+                  <strong>{selectedCategory?.name}</strong>?
+                </p>
+                <div className="flex justify-end mt-4 space-x-2">
+                  <button
+                    onClick={closeModals}
+                    className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-center items-center p-4 space-x-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400 disabled:opacity-50"
+            >
+              Prev
+            </button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CategoryPage;
