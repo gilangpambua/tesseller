@@ -22,11 +22,11 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 export default async function PreviewPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SELLER}/articles/${params.id}`
-  );
+  const { id } = await params;
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SELLER}/articles/${id}`);
 
   if (!res.ok) return notFound();
 
