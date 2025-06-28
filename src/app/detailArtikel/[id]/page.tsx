@@ -43,7 +43,7 @@ const DetailArtikelPage = async ({ params }: { params: { id: string } }) => {
 
       const allOtherArticles = allArticles.filter((a) => a.id !== data.id);
       let sameCategory = allOtherArticles.filter(
-        (a) => a.category.name === data.category.name
+        (a) => a.category?.name === data.category?.name
       );
 
       sameCategory = shuffleArray(sameCategory).slice(0, 3);
