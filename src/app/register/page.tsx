@@ -23,7 +23,7 @@ const RegisterForm: React.FC = () => {
       const response = await registerUser(payload);
       if (response && response.success) {
         console.log("Registration success response:", response);
-        router.push("/loginuser");
+        router.push("/");
       } else {
         alert(`Registration failed: ${response.message || "Unknown error"}`);
         console.log("Error response:", response);
