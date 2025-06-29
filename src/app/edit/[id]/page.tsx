@@ -15,6 +15,48 @@ const EditArticle: React.FC = () => {
   const router = useRouter();
   const { id } = useParams();
 
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("token="))
+          ?.split("=")[1];
+
+        if (!token) {
+          alert("You must be logged in to see an profile");
+          return;
+        }
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_SELLER}/auth/profile`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setProfile(response.data);
+        setLoading(false);
+        if (response.data.role === "User") {
+          alert("You are not authorized to access this page.");
+          router.push("/");
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        setLoading(false);
+        alert("Failed to load profile. Please login again.");
+        router.push("/");
+      }
+    };
+
+    fetchProfile();
+  }, [router]);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -183,24 +225,132 @@ const EditArticle: React.FC = () => {
           </div>
           <div className="pt-[20px]">
             <nav className="grid gap-[20px] text-[14px]">
-              <a
-                className="block text-white rounded transition duration-200 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-500 hover:text-white"
-                href="/dashboard"
-              >
-                Articles
-              </a>
-              <a
-                className="block text-white rounded transition duration-200 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-500 hover:text-white"
-                href="/category"
-              >
-                Category
-              </a>
-              <a
-                className="block text-white rounded transition duration-200 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-cyan-500 hover:text-white"
-                onClick={handleLogout}
-              >
-                Logout
-              </a>
+              <div>
+                <div className="flex items-center flex items-center gap-2 p-2 block text-white rounded transition duration-200 hover:bg-gradient-to-r hover:from-blue-400 hover:to-blue-400 hover:text-white">
+                  <div className="">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g clipPath="url(#clip0_2077_876)">
+                        <path
+                          d="M12.5 15H8.33331"
+                          stroke="white"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M15 11.6665H8.33331"
+                          stroke="white"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M3.33335 18.3332H16.6667C17.1087 18.3332 17.5326 18.1576 17.8452 17.845C18.1578 17.5325 18.3334 17.1085 18.3334 16.6665V3.33317C18.3334 2.89114 18.1578 2.46722 17.8452 2.15466C17.5326 1.8421 17.1087 1.6665 16.6667 1.6665H6.66669C6.22466 1.6665 5.80074 1.8421 5.48818 2.15466C5.17561 2.46722 5.00002 2.89114 5.00002 3.33317V16.6665C5.00002 17.1085 4.82443 17.5325 4.51186 17.845C4.1993 18.1576 3.77538 18.3332 3.33335 18.3332ZM3.33335 18.3332C2.89133 18.3332 2.4674 18.1576 2.15484 17.845C1.84228 17.5325 1.66669 17.1085 1.66669 16.6665V9.1665C1.66669 8.72448 1.84228 8.30055 2.15484 7.98799C2.4674 7.67543 2.89133 7.49984 3.33335 7.49984H5.00002"
+                          stroke="white"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M14.1666 5H9.16665C8.70641 5 8.33331 5.3731 8.33331 5.83333V7.5C8.33331 7.96024 8.70641 8.33333 9.16665 8.33333H14.1666C14.6269 8.33333 15 7.96024 15 7.5V5.83333C15 5.3731 14.6269 5 14.1666 5Z"
+                          stroke="white"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_2077_876">
+                          <rect width="20" height="20" fill="white" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  </div>
+                  <a className="" href="/dashboard">
+                    Articles
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-center flex items-center gap-2 p-2 block text-white rounded transition duration-200 hover:bg-gradient-to-r hover:from-blue-400 hover:to-blue-400 hover:text-white">
+                <div>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g clipPath="url(#clip0_2077_886)">
+                      <path
+                        d="M10.4884 2.15484C10.1759 1.84225 9.75201 1.6666 9.31002 1.6665H3.33335C2.89133 1.6665 2.4674 1.8421 2.15484 2.15466C1.84228 2.46722 1.66669 2.89114 1.66669 3.33317V9.30984C1.66678 9.75183 1.84244 10.1757 2.15502 10.4882L9.40835 17.7415C9.78712 18.1179 10.2994 18.3291 10.8334 18.3291C11.3673 18.3291 11.8796 18.1179 12.2584 17.7415L17.7417 12.2582C18.1181 11.8794 18.3293 11.3671 18.3293 10.8332C18.3293 10.2992 18.1181 9.78693 17.7417 9.40817L10.4884 2.15484Z"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M6.24998 6.66683C6.4801 6.66683 6.66665 6.48028 6.66665 6.25016C6.66665 6.02004 6.4801 5.8335 6.24998 5.8335C6.01986 5.8335 5.83331 6.02004 5.83331 6.25016C5.83331 6.48028 6.01986 6.66683 6.24998 6.66683Z"
+                        fill="white"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </g>
+                    <defs>
+                      <clipPath id="clip0_2077_886">
+                        <rect width="20" height="20" fill="white" />
+                      </clipPath>
+                    </defs>
+                  </svg>
+                </div>
+                <a className="" href="/category">
+                  Category
+                </a>
+              </div>
+
+              <div className="flex items-center gap-2 p-2 block text-white rounded transition duration-200 hover:bg-gradient-to-r hover:from-blue-400 hover:to-blue-400 hover:text-white">
+                <div>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7.5 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V4.16667C2.5 3.72464 2.67559 3.30072 2.98816 2.98816C3.30072 2.67559 3.72464 2.5 4.16667 2.5H7.5"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M13.3333 14.1668L17.5 10.0002L13.3333 5.8335"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M17.5 10H7.5"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <a className="" onClick={handleLogout}>
+                  Logout
+                </a>
+              </div>
             </nav>
           </div>
         </div>
@@ -222,10 +372,19 @@ const EditArticle: React.FC = () => {
             </div>
             <div className="space-x-5 flex items-center">
               <a href="/profile">
-                {" "}
-                <button>
-                  <span className="text-gray-500 text-lg">👤</span>
-                </button>
+                <div className="">
+                  <div
+                    className="w-10 h-10 flex items-center justify-center text-xl font-bold text-white rounded-full"
+                    style={{
+                      backgroundColor: "#BFDBFE",
+                      color: "#1E3A8A",
+                    }}
+                  >
+                    {profile?.username
+                      ? profile.username.charAt(0).toUpperCase()
+                      : "N/A"}
+                  </div>
+                </div>
               </a>
             </div>
           </div>
@@ -329,23 +488,6 @@ const EditArticle: React.FC = () => {
                             </div>
                           </div>
                         </label>
-
-                        {(imagePreview || existingImage) && (
-                          <div className="flex justify-center space-x-4">
-                            <div
-                              onClick={handleDeleteImage}
-                              className="text-red-500"
-                            >
-                              Delete
-                            </div>
-                            <div
-                              onChange={handleFileChange}
-                              className="text-blue-500"
-                            >
-                              Change
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                     <div className="grid">
