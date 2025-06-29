@@ -172,7 +172,26 @@ export default async function DetailArtikelPage({
                   </div>
                 )}
               </div>
-              <div className="text-[14px]">{data.content}</div>
+              <div className="text-[14px] space-y-4">
+                {data.content.split("\n").map((line, index) => {
+                  if (
+                    index === 0 ||
+                    data.content.split("\n")[index - 1] === ""
+                  ) {
+                    return (
+                      <p key={index} className="mb-4 text-justify font-bold">
+                        {line}
+                      </p>
+                    );
+                  } else {
+                    return (
+                      <p key={index} className="mb-4 text-justify">
+                        {line}
+                      </p>
+                    );
+                  }
+                })}
+              </div>
             </div>
           </div>
           <div className="px-[10px]">

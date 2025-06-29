@@ -28,7 +28,8 @@ const Dashboard: React.FC = () => {
           ?.split("=")[1];
 
         if (!token) {
-          alert("You must be logged in to see an profile");
+          alert("You must be logged in");
+          router.push("/");
           return;
         }
         const response = await axios.get(

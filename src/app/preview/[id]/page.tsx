@@ -171,7 +171,27 @@ export default async function PreviewPage({
                   </div>
                 )}
               </div>
-              <div className="text-[14px]">{data.content}</div>
+              <div className="text-[14px] space-y-4">
+                {" "}
+                {data.content.split("\n").map((line, index) => {
+                  if (
+                    index === 0 ||
+                    data.content.split("\n")[index - 1] === ""
+                  ) {
+                    return (
+                      <p key={index} className="mb-4 text-justify font-bold">
+                        {line}
+                      </p>
+                    );
+                  } else {
+                    return (
+                      <p key={index} className="mb-4 text-justify">
+                        {line}
+                      </p>
+                    );
+                  }
+                })}
+              </div>
             </div>
           </div>
           <div className="px-[10px]">
@@ -208,15 +228,14 @@ export default async function PreviewPage({
                         day: "numeric",
                       })}
                     </div>
-                    {/* Judul Artikel */}
                     <div className="font-bold text-lg">{article.title}</div>
-                    {/* Konten Artikel */}
                     <div className="text-sm text-gray-700">
                       {truncateContent(article.content)}
                     </div>
-                    {/* Kategori Artikel */}
-                    <div className="text-xs text-[#1E3A8A] bg-[#BFDBFE] p-1 inline-block rounded-xl">
-                      {article.category.name}
+                    <div className="text-xs text-[#1E3A8A]">
+                      <div className="bg-[#BFDBFE] p-1 inline-block rounded-xl">
+                        {article.category.name}
+                      </div>
                     </div>
                   </div>
                 ))}

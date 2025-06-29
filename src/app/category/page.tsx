@@ -31,7 +31,8 @@ const CategoryPage: React.FC = () => {
           ?.split("=")[1];
 
         if (!token) {
-          alert("You must be logged in to see an profile");
+          alert("You must be logged in to see an category");
+          router.push("/");
           return;
         }
         const response = await axios.get(

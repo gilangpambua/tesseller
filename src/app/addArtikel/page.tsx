@@ -24,7 +24,8 @@ const AddArticle: React.FC = () => {
           ?.split("=")[1];
 
         if (!token) {
-          alert("You must be logged in to see an profile");
+          alert("You must be logged in");
+          router.push("/");
           return;
         }
         const response = await axios.get(
@@ -73,27 +74,13 @@ const AddArticle: React.FC = () => {
     fetchCategories();
   }, []);
 
-  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files ? e.target.files[0] : null;
-  //   if (file) {
-  //     setImageUrl(file);
-
-  //     // Create a URL for the uploaded image and set it as the preview
-  //     const fileReader = new FileReader();
-  //     fileReader.onloadend = () => {
-  //       setImagePreview(fileReader.result as string);
-  //     };
-  //     fileReader.readAsDataURL(file); // This will trigger onloadend to display the image
-  //   }
-  // };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !content || !selectedCategory) {
       alert("Please fill in all fields.");
       return;
     }
-
+    setLoading(true);
     const articleData = {
       title,
       content,
@@ -125,6 +112,8 @@ const AddArticle: React.FC = () => {
     } catch (error) {
       console.error("Error uploading article:", error);
       alert("Failed to create article.");
+    } finally {
+      setLoading(false);
     }
   };
   const handleLogout = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -135,7 +124,6 @@ const AddArticle: React.FC = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Menambahkan tipe untuk parameter e
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -206,7 +194,30 @@ const AddArticle: React.FC = () => {
 
   return (
     <div>
-      <div className="grid h-screen md:h-screen md:flex">
+      <div className="grid min-h-screen md:h-auto md:flex">
+        {loading && (
+          <div className="absolute inset-0 bg-gray-100 bg-opacity-10 flex justify-center items-center z-50 transition-opacity duration-500 ease-in-out">
+            <div role="status" className="animate-spin">
+              <svg
+                aria-hidden="true"
+                className="w-12 h-12 text-gray-200 fill-blue-600"
+                viewBox="0 0 100 101"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                  fill="currentFill"
+                />
+              </svg>
+              <span className="sr-only">Loading...</span>
+            </div>
+          </div>
+        )}
         <div
           className={`w-screen bg-[#2563EB] text-white flex flex-col p-4 md:flex sm:flex md:w-[250px] md:px-[30px] ${
             isSidebarOpen ? "block" : "hidden"
@@ -343,16 +354,16 @@ const AddArticle: React.FC = () => {
                       <path
                         d="M10 15.8333L4.16669 9.99996L10 4.16663"
                         stroke="#0F172A"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                       <path
                         d="M15.8334 10H4.16669"
                         stroke="#0F172A"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                     </svg>
                   </div>
@@ -362,21 +373,20 @@ const AddArticle: React.FC = () => {
                 </div>
               </div>
               <div className="p-4">
-                <div className="relative max-w-md gap-[8px]">
+                <div className="relative max-w-md mx-auto gap-[8px]">
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className="block text-gray-700">Thumbnails</label>
                       <div className="items-center justify-center">
                         <label
                           htmlFor="dropzone-file"
-                          className="flex flex-col items-center justify-center w-[223px] h-[163px] px-4 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 relative"
+                          className="flex flex-col items-center justify-center w-full sm:w-[223px] h-[163px] px-4 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 relative"
                         >
-                          {/* Gambar Preview */}
                           {imagePreview ? (
                             <img
                               src={imagePreview}
                               alt="Image Preview"
-                              className="w-full h-full object-cover rounded-lg"
+                              className="w-full h-auto object-cover rounded-lg"
                             />
                           ) : (
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -413,10 +423,8 @@ const AddArticle: React.FC = () => {
                             onChange={handleFileChange}
                           />
                         </label>
-
-                        {/* Delete and Change Buttons Below the Image */}
                         {imagePreview && (
-                          <div className="flex justify-center space-x-4">
+                          <div className="flex space-x-4">
                             <div
                               onClick={handleDelete}
                               className="text-red-500"
@@ -439,14 +447,14 @@ const AddArticle: React.FC = () => {
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="p-2 border rounded border-gray-300"
+                        className="p-2 border rounded border-gray-300 w-full"
                         placeholder="Enter article title"
                       />
                     </div>
                     <div className="grid">
                       <label className="block text-gray-700">Category</label>
                       <select
-                        className="p-2 border rounded border-gray-300"
+                        className="p-2 border rounded border-gray-300 w-full"
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
                       >
@@ -464,12 +472,12 @@ const AddArticle: React.FC = () => {
                     </div>
                     <div className="grid">
                       <label className="block text-gray-700">Content</label>
-                      <div className="w-full mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
-                        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-600">
-                          <div className="flex flex-wrap items-center divide-gray-200 sm:divide-x sm:rtl:divide-x-reverse dark:divide-gray-600">
+                      <div className="w-full mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200">
+                          <div className="flex flex-wrap items-center divide-gray-200 sm:divide-x sm:rtl:divide-x-reverse">
                             <div className="flex items-center space-x-1 rtl:space-x-reverse sm:pe-4">
                               <div className="flex gap-[4px]">
-                                <div className="p-2 text-gray-500 rounded-sm cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
+                                <div className="p-2 text-gray-500 rounded-sm cursor-pointer hover:text-gray-900 hover:bg-gray-100">
                                   <svg
                                     width="16"
                                     height="16"
@@ -480,16 +488,16 @@ const AddArticle: React.FC = () => {
                                     <path
                                       d="M6.00002 9.33341L2.66669 6.00008L6.00002 2.66675"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M2.66669 6H9.66669C10.1482 6 10.625 6.09484 11.0699 6.27911C11.5147 6.46338 11.9189 6.73346 12.2594 7.07394C12.5999 7.41442 12.87 7.81863 13.0542 8.26349C13.2385 8.70835 13.3334 9.18515 13.3334 9.66667C13.3334 10.1482 13.2385 10.625 13.0542 11.0698C12.87 11.5147 12.5999 11.9189 12.2594 12.2594C11.9189 12.5999 11.5147 12.87 11.0699 13.0542C10.625 13.2385 10.1482 13.3333 9.66669 13.3333H7.33335"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                   </svg>
                                 </div>
@@ -504,16 +512,16 @@ const AddArticle: React.FC = () => {
                                     <path
                                       d="M10 9.33341L13.3333 6.00008L10 2.66675"
                                       stroke="#CBD5E1"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M13.3334 6H6.33335C5.36089 6 4.42826 6.38631 3.74063 7.07394C3.053 7.76157 2.66669 8.69421 2.66669 9.66667C2.66669 10.1482 2.76153 10.625 2.9458 11.0698C3.13006 11.5147 3.40015 11.9189 3.74063 12.2594C4.42826 12.947 5.36089 13.3333 6.33335 13.3333H8.66669"
                                       stroke="#CBD5E1"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                   </svg>
                                 </div>
@@ -530,9 +538,9 @@ const AddArticle: React.FC = () => {
                                     <path
                                       d="M4 8.00008H10C10.7072 8.00008 11.3855 8.28103 11.8856 8.78113C12.3857 9.28123 12.6667 9.9595 12.6667 10.6667C12.6667 11.374 12.3857 12.0523 11.8856 12.5524C11.3855 13.0525 10.7072 13.3334 10 13.3334H4.66667C4.48986 13.3334 4.32029 13.2632 4.19526 13.1382C4.07024 13.0131 4 12.8436 4 12.6667V3.33341C4 3.1566 4.07024 2.98703 4.19526 2.86201C4.32029 2.73699 4.48986 2.66675 4.66667 2.66675H9.33333C10.0406 2.66675 10.7189 2.9477 11.219 3.4478C11.719 3.94789 12 4.62617 12 5.33341C12 6.04066 11.719 6.71894 11.219 7.21903C10.7189 7.71913 10.0406 8.00008 9.33333 8.00008"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                   </svg>
                                 </div>
@@ -547,23 +555,23 @@ const AddArticle: React.FC = () => {
                                     <path
                                       d="M12.6667 2.66675H6.66669"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M9.33331 13.3333H3.33331"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M10 2.66675L6 13.3334"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                   </svg>
                                 </div>
@@ -579,7 +587,7 @@ const AddArticle: React.FC = () => {
                                   <path
                                     d="M1 1L1 19"
                                     stroke="#E2E8F0"
-                                    stroke-linecap="round"
+                                    strokeLinecap="round"
                                   />
                                 </svg>
                               </div>
@@ -595,23 +603,23 @@ const AddArticle: React.FC = () => {
                                     <path
                                       d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M6.00002 7.33341C6.7364 7.33341 7.33335 6.73646 7.33335 6.00008C7.33335 5.2637 6.7364 4.66675 6.00002 4.66675C5.26364 4.66675 4.66669 5.2637 4.66669 6.00008C4.66669 6.73646 5.26364 7.33341 6.00002 7.33341Z"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M14 9.99996L11.9427 7.94263C11.6926 7.69267 11.3536 7.55225 11 7.55225C10.6464 7.55225 10.3074 7.69267 10.0573 7.94263L4 14"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                   </svg>
                                 </div>
@@ -627,7 +635,7 @@ const AddArticle: React.FC = () => {
                                   <path
                                     d="M1 1L1 19"
                                     stroke="#E2E8F0"
-                                    stroke-linecap="round"
+                                    strokeLinecap="round"
                                   />
                                 </svg>
                               </div>
@@ -643,23 +651,23 @@ const AddArticle: React.FC = () => {
                                     <path
                                       d="M10 8H2"
                                       stroke="#3B82F6"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M11.3333 12H2"
                                       stroke="#3B82F6"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M14 4H2"
                                       stroke="#3B82F6"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                   </svg>
                                 </div>
@@ -674,23 +682,23 @@ const AddArticle: React.FC = () => {
                                     <path
                                       d="M11.3333 8H4.66663"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M12.6667 12H3.33337"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M14 4H2"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                   </svg>
                                 </div>
@@ -705,23 +713,23 @@ const AddArticle: React.FC = () => {
                                     <path
                                       d="M14 8H6"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M14 12H4.66663"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M14 4H2"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                   </svg>
                                 </div>
@@ -736,23 +744,23 @@ const AddArticle: React.FC = () => {
                                     <path
                                       d="M2 8H14"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M2 12H14"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                     <path
                                       d="M2 4H14"
                                       stroke="#475569"
-                                      stroke-width="1.5"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
                                   </svg>
                                 </div>
@@ -760,28 +768,19 @@ const AddArticle: React.FC = () => {
                             </div>
                           </div>
                         </div>
-
                         <div className="px-4 py-2 bg-white rounded-b-lg">
-                          <label htmlFor="editor" className="sr-only">
-                            Publish post
-                          </label>
+                          <label htmlFor="editor" className="sr-only"></label>
                           <textarea
                             id="editor"
                             rows={8}
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            className="px-2 pt-2 block w-full px-0 text-sm text-gray-800 bg-white border-0 focus:ring-0"
+                            className="px-2 pt-2 block w-full text-sm text-gray-800 bg-white border-0 focus:ring-0"
                             placeholder="Write an article..."
                             required
                           ></textarea>
                         </div>
                       </div>
-                      {/* <textarea
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        className="p-2 border rounded border-gray-300"
-                        placeholder="Enter article content"
-                      /> */}
                     </div>
                     <div className="flex justify-end gap-2">
                       <a href="/dashboard">

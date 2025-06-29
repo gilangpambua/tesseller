@@ -27,7 +27,8 @@ const EditArticle: React.FC = () => {
           ?.split("=")[1];
 
         if (!token) {
-          alert("You must be logged in to see an profile");
+          alert("You must be logged in");
+          router.push("/");
           return;
         }
         const response = await axios.get(
@@ -150,10 +151,18 @@ const EditArticle: React.FC = () => {
     document.cookie = "role=; path=/; max-age=0";
     router.push("/");
   };
+  const handleChange = () => {
+    const inputElement = document.getElementById(
+      "dropzone-file"
+    ) as HTMLInputElement | null;
+    if (inputElement) {
+      inputElement.click();
+    }
+  };
 
   return (
     <div>
-      <div className="grid h-screen sm:h-screen md:flex">
+      <div className="grid min-h-screen md:h-auto md:flex">
         <div
           className={`w-screen bg-[#2563EB] text-white flex flex-col p-4 md:flex sm:flex md:w-[250px] md:px-[30px] ${
             isSidebarOpen ? "block" : "hidden"
@@ -473,21 +482,24 @@ const EditArticle: React.FC = () => {
                             className="hidden"
                             onChange={handleFileChange}
                           />
-                          <div className="flex justify-center space-x-4">
-                            <div
-                              onClick={handleDeleteImage}
-                              className="text-red-500"
-                            >
-                              Delete
-                            </div>
-                            <div
-                              onChange={handleFileChange}
-                              className="text-blue-500"
-                            >
-                              Change
-                            </div>
-                          </div>
                         </label>
+                        {imagePreview ||
+                          (existingImage && (
+                            <div className="flex space-x-4">
+                              <div
+                                onClick={handleDeleteImage}
+                                className="text-red-500"
+                              >
+                                Delete
+                              </div>
+                              <div
+                                onClick={handleChange}
+                                className="text-blue-500"
+                              >
+                                Change
+                              </div>
+                            </div>
+                          ))}
                       </div>
                     </div>
                     <div className="grid">

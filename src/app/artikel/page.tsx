@@ -45,6 +45,7 @@ const ArtikelPage: React.FC = () => {
 
         if (!token) {
           alert("You must be logged in to see an articles");
+          router.push("/");
           return;
         }
         const response = await axios.get(
@@ -69,7 +70,7 @@ const ArtikelPage: React.FC = () => {
 
     fetchProfile();
   }, [router]);
-  
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
